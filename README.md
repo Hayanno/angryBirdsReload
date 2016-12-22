@@ -1,2 +1,2 @@
 # angryBirdsReload
-Angry Birds clone with Java.
+Angry Birds clone with Java, JavaFX.
