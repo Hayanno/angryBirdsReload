@@ -1,25 +1,26 @@
 package angrybirdsreload.entity;
 
-import angrybirdsreload.utils.Settings;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 
 public abstract class SpriteBase {
-    ImageView imageView;
-    Pane layer;
 
-    double health, damage;
-    double dx, dy, dr;
-    double radius;
-    double x, y;
+    private ImageView imageView;
+    private Pane layer;
 
-    boolean movable = true,
+    private double health, damage;
+    private double dx, dy, dr;
+    private double radius;
+    private double x, y;
+
+    private boolean movable = true,
             removable = false,
             moving = false;
 
-    public SpriteBase(Image image, Pane layer, double x, double y, double dx, double dy, double radius, double health, double damage) {
+    public SpriteBase() { }
+
+    public void init(Image image, Pane layer, double x, double y, double dx, double dy, double radius, double health, double damage) {
         this.layer = layer;
 
         this.x = x;
@@ -37,10 +38,10 @@ public abstract class SpriteBase {
     }
 
     public void addToLayer() {
-                                                                                        this.layer.getChildren().add(this.imageView);
+                                                                                        getLayer().getChildren().add(this.imageView);
     }
     public void removeFromLayer() {
-            this.layer.getChildren().remove(this.imageView);
+            getLayer().getChildren().remove(this.imageView);
     }
 
     public Pane getLayer() {
@@ -124,20 +125,13 @@ public abstract class SpriteBase {
         return radius;
     }
 
-    public void setViewport(Rectangle2D rec) {
-        this.imageView.setViewport(rec);
-    }
-
     public void updateUI() {
         imageView.relocate(x, y);
     }
 
     public void move() {
-        x += dx;
-        y += dy;
-
-        if(isMoving())
-            dy += Settings.GRAVITY;
+        x += getDx();
+        y += getDy();
     }
 
     public boolean collidesWith(SpriteBase otherSprite) {
@@ -153,8 +147,8 @@ public abstract class SpriteBase {
     public void getDamagedBy(SpriteBase sprite) {
         health -= sprite.getDamage();
 
-        if(health <= 0) {
-            health = 0;
+        if(getHealth() <= 0) {
+            kill();
             setRemovable(true);
         }
     }

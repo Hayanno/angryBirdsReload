@@ -1,63 +1,69 @@
 package angrybirdsreload.entity;
 
-import angrybirdsreload.utils.BoundLine;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import angrybirdsreload.settings.ISettings;
+import angrybirdsreload.utils.DoubleBoundLine;
+import angrybirdsreload.utils.Input;
+import com.google.inject.Inject;
 import javafx.scene.Cursor;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
 public class Bird extends SpriteBase {
 
-    BoundLine boundLineBack, boundLineFront;
-    ImageView harnessImage;
+    @Inject
+    private ISettings gameSettings;
 
-    double minX, maxX, minY, maxY;
-    double dragStartX, dragStartY;
-    double imageStartX, imageStartY;
+    private DoubleBoundLine dbl;
+    private double minX, maxX, minY, maxY;
 
-    public Bird(Image birdImage, Image harnessImage, Pane layer,
-                BoundLine boundLineBack, BoundLine boundLineFront,
+    public Bird() {
+        super();
+    }
+
+    public void init(Image birdImage, Pane layer,
+                DoubleBoundLine dbl,
                 double x, double y,
                 double minX, double maxX, double minY, double maxY,
                 double radius, double health, double damage) {
-        super(birdImage, layer, x, y, 0, 0, radius, health, damage);
+        double finalHeight = Double.parseDouble(gameSettings.get("resolutionHeight"));
+        double finalWidth = Double.parseDouble(gameSettings.get("resolutionWidth"));
 
-        this.harnessImage = new ImageView(harnessImage);
-
-        this.boundLineBack = boundLineBack;
-        this.boundLineFront = boundLineFront;
-
+        x *= finalWidth;
+        y = finalHeight - (y * finalHeight);
         this.minX = minX;
-        this.maxX = maxX;
         this.minY = minY;
-        this.maxY = maxY;
+        this.maxX = finalWidth - maxX;
+        this.maxY = finalHeight - (maxY * finalHeight);
 
-        this.harnessImage.setVisible(false);
+        super.init(birdImage, layer, x, y, 0, 0, radius, health, damage);
 
-        this.layer.getChildren().add(this.harnessImage);
+        this.dbl = dbl;
     }
 
     @Override
     public void move() {
-        if(!outOfBounds())
+        if(!outOfBounds()) {
             super.move();
+
+            if(isMoving())
+                setDy(getDy() + Double.parseDouble(gameSettings.get("gravity")));
+        }
     }
 
     private boolean outOfBounds() {
         if(Double.compare(getX(), minX) < 0
-        || Double.compare(getX(), maxX) > 0
-        || Double.compare(getY(), minY) < 0)
+                //|| Double.compare(getY(), minY) < 0
+                || Double.compare(getX(), maxX) > 0)
             return true;
 
+        // TODO : SETTINGS
         // On gère le rebond
         if(Double.compare(getY(), maxY) > 0) {
             // On s'arrête si le rebond est minimal
-            if(Double.compare(Math.sqrt(getDx()) + Math.sqrt(getDy()), 0.3) < 0)
+            if(bounceIsTooWeak())
                 return true;
 
+            setY(maxY - 1);
             setDy(-getDy() / 2);
             setDx(getDx() / 2);
         }
@@ -65,54 +71,57 @@ public class Bird extends SpriteBase {
         return false;
     }
 
-    public void addListeners() {
-        imageView.setOnMouseEntered((MouseEvent event) -> {
-            if(isMovable())
-                imageView.setCursor(Cursor.HAND);
-        });
+    public void processInput(Input input) {
+        double vX = input.getSceneX() - input.getImageStartX();
+        double vY = input.getSceneY() - input.getImageStartY();
+        double magV = Math.sqrt(vX*vX + vY*vY);
+        double aX = input.getImageStartX() + vX / magV * 2 * 70;
+        double aY = input.getImageStartY() + vY / magV * 2 * 70;
 
-        imageView.setOnMousePressed((MouseEvent event) -> {
-            if(isMovable()) {
-                imageView.setCursor(Cursor.CLOSED_HAND);
+        if(input.isMouseEntered() && isMovable())
+            getView().setCursor(Cursor.HAND);
 
-                // record a delta distance for the drag and drop operation.
-                dragStartX = imageView.getLayoutX() - event.getSceneX();
-                dragStartY = imageView.getLayoutY() - event.getSceneY();
+        if(input.isMousePressed() && isMovable()) {
+            input.setDragStartX(getView().getLayoutX());
+            input.setDragStartY(getView().getLayoutY());
+            getView().setCursor(Cursor.CLOSED_HAND);
+        }
 
-                imageStartX = event.getSceneX();
-                imageStartY = event.getSceneY();
+        if(input.isMouseDragging() && isMovable()) {
+            if(isOutOfRange(input)){
+                setX(aX + input.getDragStartX());
+                setY(aY + input.getDragStartY());
             }
-        });
-
-        imageView.setOnMouseDragged((MouseEvent event) -> {
-            if(isMovable()) {
-                setX(event.getSceneX() + dragStartX);
-                setY(event.getSceneY() + dragStartY);
-
-                harnessImage.setLayoutX(event.getSceneX() + dragStartX);
-                harnessImage.setLayoutY(event.getSceneY() + dragStartY + 15);
-
-                DoubleProperty lineBackX = new SimpleDoubleProperty(event.getSceneX() + dragStartX + 10);
-                DoubleProperty lineBackY = new SimpleDoubleProperty(event.getSceneY() + dragStartY + 35);
-                DoubleProperty lineFrontX = new SimpleDoubleProperty(event.getSceneX() + dragStartX + 10);
-                DoubleProperty lineFrontY = new SimpleDoubleProperty(event.getSceneY() + dragStartY + 35);
-
-                boundLineBack.setEndProperty(lineBackX, lineBackY);
-                boundLineFront.setEndProperty(lineFrontX, lineFrontY);
-
-                this.harnessImage.setVisible(true);
+            else {
+                setX(input.getSceneX() + input.getDragStartX());
+                setY(input.getSceneY() + input.getDragStartY());
             }
-        });
+        }
 
-        imageView.setOnMouseReleased((MouseEvent event) -> {
-            if(isMovable()) {
-                setMoving(true);
+        if(input.isMouseReleased() && isMovable()) {
+            setMoving(true);
+            setMovable(false);
 
-                imageView.setCursor(Cursor.DEFAULT);
+            getView().setCursor(Cursor.DEFAULT);
 
-                setDx((imageStartX - event.getSceneX()) / 10.0);
-                setDy((imageStartY - event.getSceneY()) / 10.0);
+            // TODO : SETTINGS
+            if(isOutOfRange(input)){
+                setDx((input.getImageStartX() - aX) / 12.0);
+                setDy((input.getImageStartY() - aY) / 12.0);
             }
-        });
+            else {
+                setDx((input.getImageStartX() - input.getSceneX()) / 12.0);
+                setDy((input.getImageStartY() - input.getSceneY()) / 12.0);
+            }
+        }
+    }
+
+    private boolean bounceIsTooWeak() {
+        return Double.compare(Math.abs(getDx()), 1) < 0 || Double.compare(Math.abs(getDy()), 1) < 0;
+    }
+
+    private boolean isOutOfRange(Input input) {
+        return Math.hypot(input.getSceneX() - input.getImageStartX(),
+                input.getSceneY() - input.getImageStartY()) >= 2 * 60;
     }
 }
