@@ -1,7 +1,6 @@
 package angrybirdsreload.entity;
 
 import angrybirdsreload.settings.ISettings;
-import angrybirdsreload.utils.DoubleBoundLine;
 import angrybirdsreload.utils.Input;
 import com.google.inject.Inject;
 import javafx.scene.Cursor;
@@ -13,20 +12,18 @@ public class Bird extends SpriteBase {
     @Inject
     private ISettings gameSettings;
 
-    private DoubleBoundLine dbl;
-    private double minX, maxX, minY, maxY;
+    private double minX, maxX, minY, maxY, finalWidth, finalHeight;
 
     public Bird() {
         super();
     }
 
     public void init(Image birdImage, Pane layer,
-                DoubleBoundLine dbl,
                 double x, double y,
                 double minX, double maxX, double minY, double maxY,
                 double radius, double health, double damage) {
-        double finalHeight = Double.parseDouble(gameSettings.get("resolutionHeight"));
-        double finalWidth = Double.parseDouble(gameSettings.get("resolutionWidth"));
+        this.finalHeight = Double.parseDouble(gameSettings.get("game", "resolutionHeight"));
+        this.finalWidth = Double.parseDouble(gameSettings.get("game", "resolutionWidth"));
 
         x *= finalWidth;
         y = finalHeight - (y * finalHeight);
@@ -36,8 +33,6 @@ public class Bird extends SpriteBase {
         this.maxY = finalHeight - (maxY * finalHeight);
 
         super.init(birdImage, layer, x, y, 0, 0, radius, health, damage);
-
-        this.dbl = dbl;
     }
 
     @Override
@@ -46,17 +41,22 @@ public class Bird extends SpriteBase {
             super.move();
 
             if(isMoving())
-                setDy(getDy() + Double.parseDouble(gameSettings.get("gravity")));
+                setDy(getDy() + Double.parseDouble(gameSettings.get("game", "gravity")));
         }
     }
 
-    private boolean outOfBounds() {
-        if(Double.compare(getX(), minX) < 0
-                //|| Double.compare(getY(), minY) < 0
-                || Double.compare(getX(), maxX) > 0)
+    @Override
+    public void moveTo(double moveX, double moveY) {
+        moveX *= finalWidth;
+        moveY = finalHeight - (moveY * finalHeight);
+
+        super.moveTo(moveX, moveY);
+    }
+
+    public boolean outOfBounds() {
+        if(Double.compare(getX(), minX) < 0 || Double.compare(getX(), maxX - 48) > 0)
             return true;
 
-        // TODO : SETTINGS
         // On gère le rebond
         if(Double.compare(getY(), maxY) > 0) {
             // On s'arrête si le rebond est minimal
@@ -72,11 +72,7 @@ public class Bird extends SpriteBase {
     }
 
     public void processInput(Input input) {
-        double vX = input.getSceneX() - input.getImageStartX();
-        double vY = input.getSceneY() - input.getImageStartY();
-        double magV = Math.sqrt(vX*vX + vY*vY);
-        double aX = input.getImageStartX() + vX / magV * 2 * 70;
-        double aY = input.getImageStartY() + vY / magV * 2 * 70;
+        double radius = Double.parseDouble(gameSettings.get("stage", "elasticRadius"));
 
         if(input.isMouseEntered() && isMovable())
             getView().setCursor(Cursor.HAND);
@@ -88,9 +84,9 @@ public class Bird extends SpriteBase {
         }
 
         if(input.isMouseDragging() && isMovable()) {
-            if(isOutOfRange(input)){
-                setX(aX + input.getDragStartX());
-                setY(aY + input.getDragStartY());
+            if(input.isOutOfRange(radius)){
+                setX(input.getMaxRangeX(radius) + input.getDragStartX());
+                setY(input.getMaxRangeY(radius) + input.getDragStartY());
             }
             else {
                 setX(input.getSceneX() + input.getDragStartX());
@@ -101,27 +97,22 @@ public class Bird extends SpriteBase {
         if(input.isMouseReleased() && isMovable()) {
             setMoving(true);
             setMovable(false);
+            setRemovable(true);
 
             getView().setCursor(Cursor.DEFAULT);
 
-            // TODO : SETTINGS
-            if(isOutOfRange(input)){
-                setDx((input.getImageStartX() - aX) / 12.0);
-                setDy((input.getImageStartY() - aY) / 12.0);
+            if(input.isOutOfRange(radius)){
+                setDx((input.getImageStartX() - input.getMaxRangeX(radius)) / Double.parseDouble(gameSettings.get("game", "speedX")));
+                setDy((input.getImageStartY() - input.getMaxRangeY(radius)) / Double.parseDouble(gameSettings.get("game", "speedY")));
             }
             else {
-                setDx((input.getImageStartX() - input.getSceneX()) / 12.0);
-                setDy((input.getImageStartY() - input.getSceneY()) / 12.0);
+                setDx((input.getImageStartX() - input.getSceneX()) / Double.parseDouble(gameSettings.get("game", "speedX")));
+                setDy((input.getImageStartY() - input.getSceneY()) / Double.parseDouble(gameSettings.get("game", "speedY")));
             }
         }
     }
 
     private boolean bounceIsTooWeak() {
         return Double.compare(Math.abs(getDx()), 1) < 0 || Double.compare(Math.abs(getDy()), 1) < 0;
-    }
-
-    private boolean isOutOfRange(Input input) {
-        return Math.hypot(input.getSceneX() - input.getImageStartX(),
-                input.getSceneY() - input.getImageStartY()) >= 2 * 60;
     }
 }

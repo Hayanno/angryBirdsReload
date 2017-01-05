@@ -52,6 +52,27 @@ public class Input {
         });
     }
 
+    public boolean isOutOfRange(double radius) {
+        return Math.hypot(getSceneX() - getImageStartX(),
+                getSceneY() - getImageStartY()) >= 2 * radius;
+    }
+
+    public double getMaxRangeX(double radius) {
+        double vX = getSceneX() - getImageStartX();
+        double vY = getSceneY() - getImageStartY();
+        double magV = Math.sqrt(vX*vX + vY*vY);
+
+        return getImageStartX() + vX / magV * 2 * radius;
+    }
+
+    public double getMaxRangeY(double radius) {
+        double vX = getSceneX() - getImageStartX();
+        double vY = getSceneY() - getImageStartY();
+        double magV = Math.sqrt(vX*vX + vY*vY);
+
+        return getImageStartY() + vY / magV * 2 * radius;
+    }
+
     public void setDragStartX(double dragStartX) {
         this.dragStartX = dragStartX - getSceneX();
     }

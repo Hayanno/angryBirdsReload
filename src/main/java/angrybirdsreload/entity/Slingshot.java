@@ -24,8 +24,8 @@ public class Slingshot {
 
     public void init(Image imageBack, Image imageFront, Image harnessImage, Pane layer,
                      double backX, double backY, double frontX, double frontY) {
-        double finalHeight = Double.parseDouble(gameSettings.get("resolutionHeight")),
-                finalWidth = Double.parseDouble(gameSettings.get("resolutionWidth"));
+        double finalHeight = Double.parseDouble(gameSettings.get("game", "resolutionHeight")),
+                finalWidth = Double.parseDouble(gameSettings.get("game", "resolutionWidth"));
 
         this.playField = layer;
         this.doubleBoundLine = new DoubleBoundLine();
@@ -67,85 +67,53 @@ public class Slingshot {
     }
 
     public void processInput(Input input) {
-        // TODO : SETTINGS
-        double x = input.getSceneX() + input.getDragStartX(),
-                y = input.getSceneY() + input.getDragStartY();
+        double x, y,
+            radius = Double.parseDouble(gameSettings.get("stage", "elasticRadius"));;
 
-        double vX = input.getSceneX() - input.getImageStartX();
-        double vY = input.getSceneY() - input.getImageStartY();
-        double magV = Math.sqrt(vX*vX + vY*vY);
-        double aX = input.getImageStartX() + vX / magV * 2 * 70;
-        double aY = input.getImageStartY() + vY / magV * 2 * 70;
+        if(input.isOutOfRange(radius)) {
+            x = input.getMaxRangeX(radius) + input.getDragStartX();
+            y = input.getMaxRangeY(radius) + input.getDragStartY();
+        }
+        else {
+            x = input.getSceneX() + input.getDragStartX();
+            y = input.getSceneY() + input.getDragStartY();
+        }
 
         if(input.isMouseDragging()) {
             harnessImageView.setVisible(true);
+            harnessImageView.setLayoutX(x);
+            harnessImageView.setLayoutY(y + 15);
 
-            if(isOutOfRange(input)){
-                harnessImageView.setLayoutX(aX + input.getDragStartX());
-                harnessImageView.setLayoutY(aY + input.getDragStartY() + 15);
-
-                getDoubleBoundLine().getBack().setEndProperty(aX + input.getDragStartX() + 10, aY + input.getDragStartY() + 35);
-                getDoubleBoundLine().getFront().setEndProperty(aX + input.getDragStartX() + 10, aY + input.getDragStartY() + 35);
-            }
-            else {
-                harnessImageView.setLayoutX(x);
-                harnessImageView.setLayoutY(y + 15);
-
-                getDoubleBoundLine().getBack().setEndProperty(x + 10, y + 35);
-                getDoubleBoundLine().getFront().setEndProperty(x + 10, y + 35);
-            }
+            getDoubleBoundLine().getBack().setEndProperty(x + 10, y + 35);
+            getDoubleBoundLine().getFront().setEndProperty(x + 10, y + 35);
         }
 
         if(input.isMouseReleased() && movable) {
             // on arrête le mouvement lorsque l'on arrive au centre du lance-pierre
+            if(almostEqual(x + 10 + dx, input.getImageStartX())
+                    && almostEqual(y + 35 + dy, input.getImageStartY())) {
+                movable = false;
+                harnessImageView.setVisible(false);
 
-            if(isOutOfRange(input)){
-                if(almostEqual(aX + input.getDragStartX() + 10 + dx, input.getImageStartX(), 40)
-                        && almostEqual(aY + input.getDragStartY() + 35 + dy, input.getImageStartY(), 40)) {
-                    movable = false;
-                    harnessImageView.setVisible(false);
+                doubleBoundLine.getBack().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
+                doubleBoundLine.getFront().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
 
-                    doubleBoundLine.getBack().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
-                    doubleBoundLine.getFront().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
-                }
-                else {
-                    dx += ((input.getImageStartX() - aX) / 12.0);
-                    dy += ((input.getImageStartY() - aY) / 12.0);
-
-                    harnessImageView.setLayoutX(aX + input.getDragStartX() + dx);
-                    harnessImageView.setLayoutY(aY + input.getDragStartY() + 15 + dy);
-
-                    getDoubleBoundLine().getBack().setEndProperty(
-                            aX + input.getDragStartX() + 10 + dx,
-                            aY + input.getDragStartY() + 35 + dy);
-                    getDoubleBoundLine().getFront().setEndProperty(
-                            aX + input.getDragStartX() + 10 + dx,
-                            aY + input.getDragStartY() + 35 + dy);
-                }
+                dx = 0;
+                dy = 0;
             }
             else {
-                if(almostEqual(x + 10 + dx, input.getImageStartX(), 40)
-                        && almostEqual(y + 35 + dy, input.getImageStartY(), 40)) {
-                    movable = false;
-                    harnessImageView.setVisible(false);
+                dx += ((input.getImageStartX() - input.getSceneX()) / Double.parseDouble(gameSettings.get("game", "speedX")));
+                dy += ((input.getImageStartY() - input.getSceneY()) / Double.parseDouble(gameSettings.get("game", "speedY")));
 
-                    doubleBoundLine.getBack().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
-                    doubleBoundLine.getFront().setEndProperty(frontImageView.getLayoutX() + 18, frontImageView.getLayoutY() + 35);
-                }
-                else {
-                    dx += ((input.getImageStartX() - input.getSceneX()) / 12.0);
-                    dy += ((input.getImageStartY() - input.getSceneY()) / 12.0);
+                harnessImageView.setLayoutX(x + dx);
+                harnessImageView.setLayoutY(y + 15 + dy);
 
-                    harnessImageView.setLayoutX(x + dx);
-                    harnessImageView.setLayoutY(y + 15 + dy);
-
-                    getDoubleBoundLine().getBack().setEndProperty(
-                            x + 10 + dx,
-                            y + 35 + dy);
-                    getDoubleBoundLine().getFront().setEndProperty(
-                            x + 10 + dx,
-                            y + 35 + dy);
-                }
+                getDoubleBoundLine().getBack().setEndProperty(
+                        x + 10 + dx,
+                        y + 35 + dy);
+                getDoubleBoundLine().getFront().setEndProperty(
+                        x + 10 + dx,
+                        y + 35 + dy);
             }
         }
     }
@@ -155,12 +123,11 @@ public class Slingshot {
     public ImageView getFront() { return frontImageView; }
     public ImageView getHarness() { return harnessImageView; }
 
-    private static boolean almostEqual(double a, double b, double eps){
-        return Math.abs(a-b) < eps;
+    public void setMovable(boolean movable) {
+        this.movable = movable;
     }
 
-    private static boolean isOutOfRange(Input input) {
-        return Math.hypot(input.getSceneX() - input.getImageStartX(),
-                input.getSceneY() - input.getImageStartY()) >= 2 * 60;
+    private static boolean almostEqual(double a, double b){
+        return Math.abs(a - b) < 40.0;
     }
 }

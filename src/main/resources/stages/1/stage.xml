@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<settings>
+    <elasticRadius>70</elasticRadius>
+
+    <slingshotBackX>0.17</slingshotBackX>
+    <slingshotBackY>0.36</slingshotBackY>
+    <slingshotFrontX>0.151</slingshotFrontX>
+    <slingshotFrontY>0.366</slingshotFrontY>
+
+    <birdOnSlingshotX>0.156</birdOnSlingshotX>
+    <birdOnSlingshotY>0.359</birdOnSlingshotY>
+
+    <birdWaitingX>0.100</birdWaitingX>
+    <birdWaitingY>0.188</birdWaitingY>
+
+    <maxY>0.188</maxY>
+    <maxX>0</maxX>
+</settings>

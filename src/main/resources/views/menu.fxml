@@ -8,31 +8,29 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane id="body" alignment="CENTER" hgap="10" prefHeight="300.0" prefWidth="500.0" vgap="10" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="angrybirdsreload.controller.MenuController">
-   <rowConstraints>
-        <RowConstraints prefHeight="80.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-        <RowConstraints prefHeight="40.0" />
-   </rowConstraints>
-   <columnConstraints>
-      <ColumnConstraints prefWidth="500.0" />
-   </columnConstraints>
-   <children>
-       <ImageView id="boxImage" GridPane.halignment="CENTER">
-           <image>
-               <Image url="@/img/birds/red.png" />
-           </image>
-       </ImageView>
-      <Label id="menuTitle" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="500.0" text="Angry Birds" GridPane.rowIndex="1" />
-      <Label id="subMenuTitle" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="500.0" text="Reload" GridPane.rowIndex="2" />
-      <Button fx:id="startButton" mnemonicParsing="false" onAction="#startButtonAction" styleClass="menuButton" text="Démarrer" GridPane.halignment="CENTER" GridPane.rowIndex="4" />
-      <Button mnemonicParsing="false" styleClass="menuButton" text="Niveaux" GridPane.halignment="CENTER" GridPane.rowIndex="5" />
-      <Button mnemonicParsing="false" styleClass="menuButton" text="Musique" GridPane.halignment="CENTER" GridPane.rowIndex="6" />
-      <Button fx:id="closeButton" mnemonicParsing="false" onAction="#closeButtonAction" styleClass="menuButton" text="Quitter" GridPane.halignment="CENTER" GridPane.rowIndex="7" />
-   </children>
+<GridPane id="body" alignment="CENTER" hgap="10" prefHeight="300.0" prefWidth="500.0" vgap="10"
+          xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="angrybirdsreload.controller.MenuController">
+    <rowConstraints>
+        <RowConstraints prefHeight="80.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+        <RowConstraints prefHeight="40.0"/>
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints prefWidth="500.0"/>
+    </columnConstraints>
+    <ImageView id="boxImage" GridPane.halignment="CENTER">
+        <Image url="@/img/birds/red.png"/>
+    </ImageView>
+    <Label id="menuTitle" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="500.0" text="Angry Birds" GridPane.rowIndex="1"/>
+    <Label id="subMenuTitle" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="500.0" text="Reload" GridPane.rowIndex="2"/>
+    <Button fx:id="startButton" mnemonicParsing="false" onAction="#startButtonAction" styleClass="menuButton" text="Démarrer" GridPane.halignment="CENTER" GridPane.rowIndex="4"/>
+    <Button mnemonicParsing="false" styleClass="menuButton" text="Niveaux" GridPane.halignment="CENTER" GridPane.rowIndex="5"/>
+    <Button mnemonicParsing="false" styleClass="menuButton" text="Musique" GridPane.halignment="CENTER" GridPane.rowIndex="6"/>
+    <Button fx:id="closeButton" mnemonicParsing="false" onAction="#closeButtonAction" styleClass="menuButton" text="Quitter" GridPane.halignment="CENTER" GridPane.rowIndex="7"/>
 </GridPane>

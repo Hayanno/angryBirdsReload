@@ -56,3 +56,9 @@
 .menuButton Text {
     -fx-effect: dropshadow( gaussian , #a30000 , 0,0,0,2 );
 }
+
+.scoreLayer {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.5em;
+}

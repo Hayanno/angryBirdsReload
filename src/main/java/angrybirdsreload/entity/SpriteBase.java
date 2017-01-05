@@ -129,6 +129,8 @@ public abstract class SpriteBase {
         imageView.relocate(x, y);
     }
 
+    public void moveTo(double moveX, double moveY) { setX(moveX); setY(moveY); }
+
     public void move() {
         x += getDx();
         y += getDy();

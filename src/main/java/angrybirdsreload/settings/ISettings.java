@@ -4,7 +4,9 @@ public interface ISettings {
 
     void load();
 
-    String get(String key);
+    void setStageLevel(int currentStage, int currentLevel);
+
+    String get(String scope, String key);
 
     void set(String key, String value);
 

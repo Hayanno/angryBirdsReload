@@ -3,6 +3,7 @@ package angrybirdsreload.controller;
 import angrybirdsreload.entity.Bird;
 import angrybirdsreload.entity.Pig;
 import angrybirdsreload.entity.Slingshot;
+import angrybirdsreload.entity.SpriteBase;
 import angrybirdsreload.settings.GameSettingsModule;
 import angrybirdsreload.settings.ISettings;
 import angrybirdsreload.utils.Input;
@@ -15,28 +16,30 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GameController {
 
-    private Injector applicationSettingsInjector;
-
-    private Input input;
-    private Slingshot slingshot;
     private List<Pig> pigs = new ArrayList<>();
     private List<Bird> birds = new ArrayList<>();
 
-    private AnimationTimer gameLoop;
     private Image birdImage, pigImage, harnessImage, slingshotBackImage, slingshotFrontImage;
+    private Injector applicationSettingsInjector;
+    private ISettings applicationSettings;
+    private AnimationTimer gameLoop;
+    private Slingshot slingshot;
+    private Input input;
 
-    @FXML
-    private Button backMenuButton;
+    private int score = 0;
 
-    @FXML
-    private Pane playField;
+    @FXML private Button backMenuButton;
+    @FXML private Pane playField;
+    @FXML private Text scoreLayer;
 
     @FXML
     private void menuButtonAction() throws Exception {
@@ -49,7 +52,7 @@ public class GameController {
     @FXML
     void startGame() {
         applicationSettingsInjector = Guice.createInjector(new GameSettingsModule());
-        ISettings applicationSettings = applicationSettingsInjector.getInstance(ISettings.class);
+        applicationSettings = applicationSettingsInjector.getInstance(ISettings.class);
         applicationSettings.load();
 
         loadGame();
@@ -62,31 +65,36 @@ public class GameController {
 
             @Override
             public void handle(long currentNanoTime) {
-                Bird bird = currentBird();
-
-                bird.processInput(input);
-                slingshot.processInput(input);
-                bird.move();
-
-                checkCollisions();
-
-                if(birds.isEmpty()) {
+                if(birds.isEmpty() || pigs.isEmpty()) {
                     System.out.println("Game terminé");
 
                     gameLoop.stop();
                 }
-                else
+                else {
+                    Bird bird = currentBird();
+
+                    bird.processInput(input);
+
+                    slingshot.processInput(input);
+
+                    bird.move();
+
+                    checkCollisions();
+
                     bird.updateUI();
 
-                //pigs.forEach(sprite -> sprite.checkRemovability());
+                    removeSprites();
 
-                //removeSprites();
-
-                //updateScore();
+                    updateScore();
+                }
             }
         };
 
         gameLoop.start();
+    }
+
+    private void updateScore() {
+        scoreLayer.setText("Score : " + score);
     }
 
     private void loadGame() {
@@ -98,56 +106,65 @@ public class GameController {
     }
 
     private void createDecor() {
-        // TODO : dans les settings ça monsieur
-        Double slingshotBackX = 17.0/100,
-                slingshotBackY = 36.0/100,
-                slingshotFrontX = 15.1/100,
-                slingshotFrontY = 36.6/100;
+        Double slingshotBackX = Double.parseDouble(applicationSettings.get("stage", "slingshotBackX")),
+                slingshotBackY = Double.parseDouble(applicationSettings.get("stage", "slingshotBackY")),
+                slingshotFrontX = Double.parseDouble(applicationSettings.get("stage", "slingshotFrontX")),
+                slingshotFrontY = Double.parseDouble(applicationSettings.get("stage", "slingshotFrontY"));
 
         slingshot = applicationSettingsInjector.getInstance(Slingshot.class);
         slingshot.init(slingshotBackImage, slingshotFrontImage, harnessImage, playField,
                 slingshotBackX, slingshotBackY, slingshotFrontX, slingshotFrontY);
-    }
 
-    /*
-    private void moveSlingshotLines() {
-        boundLineBack.setEndProperty(event.getSceneX() + dragStartX + 10, event.getSceneY() + dragStartY + 35);
-        boundLineFront.setEndProperty(event.getSceneX() + dragStartX + 10, event.getSceneY() + dragStartY + 35);
+        scoreLayer.setText("Score : " + score);
     }
-    */
 
     private void createBirds() {
-        // TODO : dans les settings ça aussi
-        double birdX = 15.6/100,
-                birdY = 35.9/100,
-                maxY = 18.8/100,
-                maxX = 0;
+        double birdOnSlingshotX = Double.parseDouble(applicationSettings.get("stage", "birdOnSlingshotX")),
+                birdOnSlingshotY = Double.parseDouble(applicationSettings.get("stage", "birdOnSlingshotY")),
+                birdWaitingX = Double.parseDouble(applicationSettings.get("stage", "birdWaitingX")),
+                birdWaitingY = Double.parseDouble(applicationSettings.get("stage", "birdWaitingY")),
+                maxY = Double.parseDouble(applicationSettings.get("stage", "maxY")),
+                maxX = Double.parseDouble(applicationSettings.get("stage", "maxX"));
 
         // TODO : Factory ici avec boucle de création en fonction du niveau
         Bird bird = applicationSettingsInjector.getInstance(Bird.class);
         bird.init(birdImage, playField,
-                slingshot.getDoubleBoundLine(),
-                birdX, birdY,
+                birdOnSlingshotX, birdOnSlingshotY,
                 0, maxX, 0, maxY,
                 9, 1, 1);
 
         birds.add(bird);
+
+        Bird bird2 = applicationSettingsInjector.getInstance(Bird.class);
+        bird2.init(birdImage, playField,
+                birdWaitingX, birdWaitingY,
+                0, maxX, 0, maxY,
+                9, 1, 1);
+
+        birds.add(bird2);
     }
 
     private void createPigs() {
-        // TODO : LevelData
-        double pigX = 55.6/100,
-                pigY = 21.8/100;
+        for(int index = 1; index <= Double.parseDouble(applicationSettings.get("level", "pigNumber")); index++) {
+            Pig pig = applicationSettingsInjector.getInstance(Pig.class);
+            double pigX = Double.parseDouble(applicationSettings.get("level", "pigX-" + index)),
+                    pigY = Double.parseDouble(applicationSettings.get("level", "pigY-" + index));
 
-        // TODO : Factory ici avec boucle de création en fonction du niveau
-        Pig pig = applicationSettingsInjector.getInstance(Pig.class);
-        pig.init(pigImage, playField, pigX, pigY, 17, 1, 0);
+            // TODO : Factory ici
+            pig.init(pigImage, playField, pigX, pigY, 17, 1, 0, 1000);
 
-        pigs.add(pig);
+            pigs.add(pig);
+        }
     }
 
     private void loadNextBird() {
-        this.input = new Input(currentBird().getView());
+        double birdOnSlingshotX = Double.parseDouble(applicationSettings.get("stage", "birdOnSlingshotX")),
+                birdOnSlingshotY = Double.parseDouble(applicationSettings.get("stage", "birdOnSlingshotY"));
+
+        slingshot.setMovable(true);
+        currentBird().moveTo(birdOnSlingshotX, birdOnSlingshotY);
+
+        input = new Input(currentBird().getView());
 
         slingshot.getDoubleBoundLine().getFront().toFront();
         slingshot.getHarness().toFront();
@@ -158,10 +175,30 @@ public class GameController {
         for(Pig pig: pigs)
             if(pig.collidesWith(currentBird())) {
                 System.out.println("Collision");
+
+                score += pig.getScoreValue();
+
                 pig.getDamagedBy(currentBird());
-                currentBird().setRemovable(true);
-                birds.remove(0);
+                currentBird().getDamagedBy(pig);
+
+                pig.setRemovable(true);
             }
+    }
+
+    private void removeSprites() {
+        int initialBirdsNbr = birds.size();
+
+        birds.stream().filter(bird -> bird.isRemovable() && bird.outOfBounds()).forEach(SpriteBase::removeFromLayer);
+        pigs.stream().filter(SpriteBase::isRemovable).forEach(SpriteBase::removeFromLayer);
+
+        birds = birds.stream().filter(bird -> !bird.isRemovable() || !bird.outOfBounds()).collect(Collectors.toList());
+        pigs = pigs.stream().filter(pig -> !pig.isRemovable()).collect(Collectors.toList());
+
+        int newBirdsNbr = birds.size();
+
+        if(newBirdsNbr < initialBirdsNbr && newBirdsNbr != 0) {
+            loadNextBird();
+        }
     }
 
     private Bird currentBird() {
