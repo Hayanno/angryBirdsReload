@@ -16,4 +16,13 @@
 
     <maxY>0.188</maxY>
     <maxX>0</maxX>
+
+    <birdRedRadius>9</birdRedRadius>
+    <birdRedHealth>1</birdRedHealth>
+    <birdRedDamage>1</birdRedDamage>
+
+    <pigGreenMediumRadius>17</pigGreenMediumRadius>
+    <pigGreenMediumHealth>1</pigGreenMediumHealth>
+    <pigGreenMediumDamage>0</pigGreenMediumDamage>
+    <pigGreenMediumScore>1000</pigGreenMediumScore>
 </settings>

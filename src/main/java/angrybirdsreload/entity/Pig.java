@@ -2,13 +2,16 @@ package angrybirdsreload.entity;
 
 
 import angrybirdsreload.settings.ISettings;
-import com.google.inject.Inject;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 
-public class Pig extends SpriteBase {
+public abstract class Pig extends SpriteBase {
 
-    @Inject
     private ISettings gameSettings;
 
     private int scoreValue = 0;
@@ -17,19 +20,44 @@ public class Pig extends SpriteBase {
         super();
     }
 
-    public void init(Image image, Pane layer, double x, double y, double radius, double health, double damage, int scoreValue) {
+    public void init(ISettings gameSettings, Image pigImage, Pane layer, double radius, double health, double damage, int scoreValue) {
+        this.scoreValue = scoreValue;
+        this.gameSettings = gameSettings;
+
+        super.init(pigImage, layer, 0, 0, radius, health, damage);
+    }
+
+    public int getScoreValue() {
+        return scoreValue;
+    }
+
+    @Override
+    public void moveTo(double x, double y) {
         double finalWidth = Double.parseDouble(gameSettings.get("game", "resolutionWidth"));
         double finalHeight = Double.parseDouble(gameSettings.get("game", "resolutionHeight"));
 
         x *= finalWidth;
         y = finalHeight - (y * finalHeight);
 
-        this.scoreValue = scoreValue;
-
-        super.init(image, layer, x, y, 0, 0, radius, health, damage);
+        super.moveTo(x, y);
+        getView().relocate(x, y);
     }
 
-    public int getScoreValue() {
-        return scoreValue;
+    @Override
+    public void removeFromLayer() {
+        DoubleProperty scale = new SimpleDoubleProperty(1);
+        getView().scaleXProperty().bind(scale);
+        getView().scaleYProperty().bind(scale);
+
+        Timeline explosion = new Timeline(
+                new KeyFrame(Duration.ZERO, event -> {
+                    getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-1.png").toExternalForm()));
+                    scale.setValue(1.2); }),
+                new KeyFrame(Duration.seconds(0.2), event -> getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-2.png").toExternalForm()))),
+                new KeyFrame(Duration.seconds(0.4), event -> getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-3.png").toExternalForm()))),
+                new KeyFrame(Duration.seconds(0.6), event -> super.removeFromLayer())
+        );
+
+        explosion.play();
     }
 }

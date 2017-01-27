@@ -62,3 +62,12 @@
     -fx-font-weight: bold;
     -fx-font-size: 1.5em;
 }
+
+#popup {
+    -fx-background-image: url("/img/static/popup-background.png");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat:  no-repeat;
+    -fx-border: solid 1px black;
+    -fx-effect: dropshadow(gaussian , rgba(0,0,0,0.75) , 8, 0, 0, 1);
+}

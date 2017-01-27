@@ -1,5 +1,6 @@
 package angrybirdsreload.entity;
 
+import angrybirdsreload.utils.Input;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -20,13 +21,13 @@ public abstract class SpriteBase {
 
     public SpriteBase() { }
 
-    public void init(Image image, Pane layer, double x, double y, double dx, double dy, double radius, double health, double damage) {
+    public void init(Image image, Pane layer, double x, double y, double radius, double health, double damage) {
         this.layer = layer;
 
         this.x = x;
         this.y = y;
-        this.dx = dx;
-        this.dy = dy;
+        this.dx = 0;
+        this.dy = 0;
         this.radius = radius;
         this.health = health;
         this.damage = damage;
@@ -120,6 +121,9 @@ public abstract class SpriteBase {
     public ImageView getView() {
         return imageView;
     }
+    public void setView(ImageView imageView) {
+        this.imageView = imageView;
+    }
 
     public double getRadius() {
         return radius;
@@ -151,7 +155,6 @@ public abstract class SpriteBase {
 
         if(getHealth() <= 0) {
             kill();
-            setRemovable(true);
         }
     }
 
@@ -160,7 +163,7 @@ public abstract class SpriteBase {
      */
     public void kill() {
         setHealth(0);
-        setRemovable(true);
+        remove();
     }
 
     /**
@@ -169,4 +172,8 @@ public abstract class SpriteBase {
     public void remove() {
         setRemovable(true);
     }
+
+    public boolean outOfBounds() { return false; }
+
+    public void processInput(Input input) {}
 }

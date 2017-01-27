@@ -45,7 +45,7 @@ public class Input {
 
         imageView.setOnMouseReleased((MouseEvent event) -> {
             mouseDragging = false;
-            mouseReleased = true;;
+            mouseReleased = true;
 
             sceneX = event.getSceneX();
             sceneY = event.getSceneY();

@@ -20,13 +20,18 @@
         </Button>
     </HBox>
     <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
-        <Text fx:id="scoreLayer" fill="WHITE" styleClass="scoreLayer" textAlignment="RIGHT" >
+        <Text fx:id="scoreLayer" fill="WHITE" styleClass="scoreLayer" textAlignment="RIGHT">
             <HBox.margin>
                 <Insets>
                     <bottom>40</bottom>
                     <right>60</right>
                 </Insets>
             </HBox.margin>
+        </Text>
+    </HBox>
+    <HBox fx:id="popup" alignment="CENTER" visible="false" AnchorPane.bottomAnchor="295.6" AnchorPane.rightAnchor="500.0" AnchorPane.leftAnchor="500.0" AnchorPane.topAnchor="295.6">
+        <Text fx:id="popupText" fill="WHITE" >
+            Game over
         </Text>
     </HBox>
 </AnchorPane>

@@ -1,4 +1,4 @@
-package angrybirdsreload.entity;
+package angrybirdsreload.decor;
 
 import angrybirdsreload.settings.ISettings;
 import angrybirdsreload.utils.DoubleBoundLine;
@@ -22,24 +22,32 @@ public class Slingshot {
 
     public Slingshot() {}
 
-    public void init(Image imageBack, Image imageFront, Image harnessImage, Pane layer,
-                     double backX, double backY, double frontX, double frontY) {
+    public void init(Pane layer) {
         double finalHeight = Double.parseDouble(gameSettings.get("game", "resolutionHeight")),
                 finalWidth = Double.parseDouble(gameSettings.get("game", "resolutionWidth"));
 
+        Image slingshotBackImage = new Image(getClass().getResource("/img/static/slingshot_back.png").toExternalForm());
+        Image slingshotFrontImage = new Image(getClass().getResource("/img/static/slingshot_front.png").toExternalForm());
+        Image harnessImage = new Image(getClass().getResource("/img/static/harness.png").toExternalForm());
+
+        Double slingshotBackX = Double.parseDouble(gameSettings.get("stage", "slingshotBackX")),
+                slingshotBackY = Double.parseDouble(gameSettings.get("stage", "slingshotBackY")),
+                slingshotFrontX = Double.parseDouble(gameSettings.get("stage", "slingshotFrontX")),
+                slingshotFrontY = Double.parseDouble(gameSettings.get("stage", "slingshotFrontY"));
+
         this.playField = layer;
         this.doubleBoundLine = new DoubleBoundLine();
-        this.backImageView = new ImageView(imageBack);
-        this.frontImageView = new ImageView(imageFront);
+        this.backImageView = new ImageView(slingshotBackImage);
+        this.frontImageView = new ImageView(slingshotFrontImage);
         this.harnessImageView = new ImageView(harnessImage);
 
-        backX = backX * finalWidth;
-        backY = finalHeight - (backY * finalHeight);
-        frontX = frontX * finalWidth;
-        frontY = finalHeight - (frontY * finalHeight);
+        slingshotBackX = slingshotBackX * finalWidth;
+        slingshotBackY = finalHeight - (slingshotBackY * finalHeight);
+        slingshotFrontX = slingshotFrontX * finalWidth;
+        slingshotFrontY = finalHeight - (slingshotFrontY * finalHeight);
 
-        backImageView.relocate(backX, backY);
-        frontImageView.relocate(frontX, frontY);
+        backImageView.relocate(slingshotBackX, slingshotBackY);
+        frontImageView.relocate(slingshotFrontX, slingshotFrontY);
         frontImageView.setRotate(-2);
 
         doubleBoundLine.getBack().setAllProperty(backImageView, 30, 25);

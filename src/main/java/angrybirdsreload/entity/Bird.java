@@ -2,29 +2,32 @@ package angrybirdsreload.entity;
 
 import angrybirdsreload.settings.ISettings;
 import angrybirdsreload.utils.Input;
-import com.google.inject.Inject;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.Cursor;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 
-public class Bird extends SpriteBase {
+public abstract class Bird extends SpriteBase {
 
-    @Inject
     private ISettings gameSettings;
 
     private double minX, maxX, minY, maxY, finalWidth, finalHeight;
+
+    Image imageKo, imageFlying;
 
     public Bird() {
         super();
     }
 
-    public void init(Image birdImage, Pane layer,
+    public void init(ISettings gameSettings, Image birdImage, Pane layer,
                 double x, double y,
                 double minX, double maxX, double minY, double maxY,
                 double radius, double health, double damage) {
         this.finalHeight = Double.parseDouble(gameSettings.get("game", "resolutionHeight"));
         this.finalWidth = Double.parseDouble(gameSettings.get("game", "resolutionWidth"));
-
+        this.gameSettings = gameSettings;
         x *= finalWidth;
         y = finalHeight - (y * finalHeight);
         this.minX = minX;
@@ -32,7 +35,7 @@ public class Bird extends SpriteBase {
         this.maxX = finalWidth - maxX;
         this.maxY = finalHeight - (maxY * finalHeight);
 
-        super.init(birdImage, layer, x, y, 0, 0, radius, health, damage);
+        super.init(birdImage, layer, x, y, radius, health, damage);
     }
 
     @Override
@@ -53,6 +56,25 @@ public class Bird extends SpriteBase {
         super.moveTo(moveX, moveY);
     }
 
+    @Override
+    public void getDamagedBy(SpriteBase sprite) {
+        getView().setImage(imageKo);
+
+        super.getDamagedBy(sprite);
+    }
+
+    @Override
+    public void removeFromLayer() {
+        Timeline explosion = new Timeline(
+                new KeyFrame(Duration.ZERO, event -> getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-1.png").toExternalForm()))),
+                new KeyFrame(Duration.seconds(0.2), event -> getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-2.png").toExternalForm()))),
+                new KeyFrame(Duration.seconds(0.4), event -> getView().setImage(new Image(getClass().getResource("/img/animation/little-explosion-3.png").toExternalForm()))),
+                new KeyFrame(Duration.seconds(0.6), event -> super.removeFromLayer())
+        );
+
+        explosion.play();
+    }
+
     public boolean outOfBounds() {
         if(Double.compare(getX(), minX) < 0 || Double.compare(getX(), maxX - 48) > 0)
             return true;
@@ -63,6 +85,7 @@ public class Bird extends SpriteBase {
             if(bounceIsTooWeak())
                 return true;
 
+            setRemovable(true);
             setY(maxY - 1);
             setDy(-getDy() / 2);
             setDx(getDx() / 2);
@@ -100,6 +123,8 @@ public class Bird extends SpriteBase {
             setRemovable(true);
 
             getView().setCursor(Cursor.DEFAULT);
+
+            getView().setImage(imageFlying);
 
             if(input.isOutOfRange(radius)){
                 setDx((input.getImageStartX() - input.getMaxRangeX(radius)) / Double.parseDouble(gameSettings.get("game", "speedX")));
